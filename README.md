@@ -1,44 +1,150 @@
-# Soda Machine Simulator
+# Soda Machine MVC Module
 
-## Introduction
-The Soda Machine Simulator is a Python-based interactive program that simulates the operation of a soda vending machine. It allows users to select, purchase sodas, and handles transactions including stock management and change calculation.
+A Python implementation of a soda machine using the Model-View-Controller (MVC) architecture pattern.
 
-## Features
-- **Selection of Sodas**: Choose from a variety of sodas like Coke, Pepsi, Sprite, and Dr. Pepper.
-- **Realistic Transaction Handling**: Simulates the process of inserting money, selecting a soda, and receiving change.
-- **Stock Management**: Keeps track of the stock levels of each soda.
-- **Error Handling**: Gracefully handles invalid inputs and out-of-stock scenarios.
-- **Random Malfunction Simulation**: Occasionally simulates a scenario where the machine takes money but doesn't dispense a soda.
+## Overview
 
-## Requirements
-To run the Soda Machine Simulator, you need:
-- Python 3.x
+This project demonstrates the MVC design pattern through a virtual soda machine application. The application allows users to:
 
-## Installation
-No additional installation is required. The simulator is a standalone Python script.
+- View available sodas with prices and inventory levels
+- Insert money
+- Purchase sodas
+- Get change back
+- Access an admin interface for restocking and adding new sodas
+
+## Architecture
+
+The application follows the MVC architecture pattern:
+
+### Model (`soda_machine/model/`)
+- Contains the data and business logic
+- Manages inventory, prices, and transactions
+- Handles money insertion and purchases
+
+### View (`soda_machine/view/`)
+- Handles the user interface
+- Displays menus, sodas, and messages
+- Collects user input
+
+### Controller (`soda_machine/controller/`)
+- Connects the model and view components
+- Processes user input
+- Coordinates the application flow
+
 
 ## Usage
-To run the Soda Machine Simulator, navigate to the directory containing `soda_machine.py` and run:
 
+Run the application using Python:
 
-`python soda_machine.py`
+```
+python main.py
+```
 
+## Running Tests
 
-Follow the on-screen prompts to insert money, select a soda, and complete the transaction.
+Run the test suite using:
 
-## How It Works
-- **Display Sodas**: The machine displays available sodas and their prices.
-- **Insert Money**: User inserts money into the machine.
-- **Choose Soda**: User selects a soda from the available options.
-- **Transaction Processing**: The machine checks if enough money has been inserted and dispenses the soda and any change.
-- **Stock Updating**: After a soda is dispensed, its stock is reduced by one.
-- **Malfunction Simulation**: There's a 1% chance that the machine will simulate a malfunction, taking the money without dispensing a soda.
+```
+python -m test_soda_machine
+```
 
-## Contributing
-Contributions to the Soda Machine Simulator are welcome. Please feel free to fork the repository, make improvements, and submit pull requests.
+This will run all unit tests for the model, view, and controller components.
 
----
+### Main Menu
 
-# Interaction Diagram
+The main menu provides the following options:
+1. View available sodas
+2. Insert money
+3. Purchase a soda
+4. Return money
+5. Exit
 
-![](interaction_diagram.PNG)
+### Admin Mode
+
+Enter 'admin' at the main menu prompt to access the admin interface:
+1. Restock soda
+2. Add new soda
+3. View transaction history
+4. Return to main menu
+
+## Code Structure
+
+```
+soda_machine/
+├── __init__.py
+├── main.py
+├── model/
+│   ├── __init__.py
+│   └── soda_model.py
+├── view/
+│   ├── __init__.py
+│   └── soda_view.py
+└── controller/
+    ├── __init__.py
+    └── soda_controller.py
+```
+
+## Class Descriptions
+
+### SodaModel
+
+The `SodaModel` class manages the data and business logic:
+- Maintains inventory of sodas and their quantities
+- Tracks prices for each soda
+- Handles money insertion and transactions
+- Records transaction history
+
+Key methods:
+- `get_inventory()`: Returns the current inventory
+- `get_prices()`: Returns the prices of all sodas
+- `insert_money(amount)`: Adds money to the current transaction
+- `purchase_soda(soda_name)`: Processes a soda purchase
+- `return_money()`: Returns inserted money
+
+### SodaView
+
+The `SodaView` class handles the user interface:
+- Displays menus and information to the user
+- Collects and validates user input
+- Shows transaction results and messages
+
+Key methods:
+- `display_menu()`: Shows the main menu options
+- `display_sodas(inventory, prices)`: Displays available sodas
+- `get_money_input()`: Gets money input from the user
+- `get_soda_choice(available_sodas)`: Gets the user's soda selection
+
+### SodaController
+
+The `SodaController` class connects the model and view:
+- Processes user input from the view
+- Updates the model based on user actions
+- Updates the view based on model changes
+- Manages the application flow
+
+Key methods:
+- `start()`: Starts the application
+- `run_main_menu()`: Handles the main menu loop
+- `purchase_soda()`: Coordinates the soda purchase process
+- `run_admin_menu()`: Handles the admin menu loop
+
+## Extending the Application
+
+### Adding New Soda Types
+
+New soda types can be added through the admin interface or by modifying the `SodaModel` class initialization.
+
+### Customizing the Interface
+
+The user interface can be customized by modifying the methods in the `SodaView` class.
+
+### Adding New Features
+
+New features can be added by:
+1. Implementing the feature logic in the `SodaModel` class
+2. Adding interface elements in the `SodaView` class
+3. Connecting them in the `SodaController` class
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
