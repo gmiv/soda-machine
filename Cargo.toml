@@ -1,0 +1,10 @@
+[package]
+name = "soda_machine"
+version = "0.1.0"
+edition = "2021"
+description = "A soda machine CLI app that teaches the MVC pattern in Rust"
+license = "MIT"
+readme = "README.md"
+
+[dependencies]
+# Zero external crates on purpose — beginners only need the standard library.

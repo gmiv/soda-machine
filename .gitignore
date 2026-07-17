@@ -1,1 +1,14 @@
-﻿.idea
+# IDE
+.idea/
+.vscode/
+*.swp
+*~
+
+# Rust / Cargo
+/target/
+Cargo.lock
+
+# Python leftovers (if any)
+__pycache__/
+*.pyc
+.venv/

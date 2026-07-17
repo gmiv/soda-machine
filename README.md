@@ -1,150 +1,291 @@
-# Soda Machine MVC Module
+# Soda Machine (Rust) — MVC for beginners
 
-A Python implementation of a soda machine using the Model-View-Controller (MVC) architecture pattern.
+A virtual soda machine written in **Rust**, structured with the
+**Model–View–Controller (MVC)** pattern.
 
-## Overview
+This project is a full port of the original Python soda machine on the
+`mvc-pattern` branch. Same features, same menus — rewritten in idiomatic
+Rust so you can learn the language *and* the architecture at the same time.
 
-This project demonstrates the MVC design pattern through a virtual soda machine application. The application allows users to:
+---
 
-- View available sodas with prices and inventory levels
-- Insert money
-- Purchase sodas
-- Get change back
-- Access an admin interface for restocking and adding new sodas
+## What you will learn
 
-## Architecture
+| Topic | Where you see it |
+|-------|------------------|
+| Project layout with Cargo | `Cargo.toml`, `src/` |
+| Modules (`mod`, `use`) | `src/lib.rs` + folders under `src/` |
+| Structs + `impl` blocks | every component |
+| Ownership & borrowing | controller takes ownership of model/view |
+| `Result` / error handling | `ModelError` instead of Python exceptions |
+| `HashMap`, `Vec`, `String` | inventory, prices, history |
+| Unit tests with `cargo test` | bottom of `src/model/mod.rs` |
+| CLI I/O | `src/view/mod.rs` (`stdin` / `stdout`) |
 
-The application follows the MVC architecture pattern:
+No external crates — only the Rust **standard library**.
 
-### Model (`soda_machine/model/`)
-- Contains the data and business logic
-- Manages inventory, prices, and transactions
-- Handles money insertion and purchases
+---
 
-### View (`soda_machine/view/`)
-- Handles the user interface
-- Displays menus, sodas, and messages
-- Collects user input
+## Prerequisites
 
-### Controller (`soda_machine/controller/`)
-- Connects the model and view components
-- Processes user input
-- Coordinates the application flow
+1. Install Rust with [rustup](https://rustup.rs/):
 
+   ```bash
+   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+   ```
 
-## Usage
+2. Confirm the tools exist:
 
-Run the application using Python:
+   ```bash
+   rustc --version   # compiler
+   cargo --version   # package manager + build tool
+   ```
 
+If those print version numbers, you are ready.
+
+---
+
+## Quick start
+
+From the project root:
+
+```bash
+# Run the interactive soda machine
+cargo run
+
+# Run all unit tests
+cargo test
+
+# Build a release binary (optimized)
+cargo build --release
+# then: ./target/release/soda_machine
 ```
-python main.py
-```
 
-## Running Tests
+The first `cargo run` may download nothing (we have zero dependencies) but
+will compile the project into `target/`. Later runs are faster.
 
-Run the test suite using:
+---
 
-```
-python -m test_soda_machine
-```
+## What the app does
 
-This will run all unit tests for the model, view, and controller components.
+**Customer menu**
 
-### Main Menu
-
-The main menu provides the following options:
-1. View available sodas
+1. View available sodas (price + in stock / out of stock)
 2. Insert money
-3. Purchase a soda
+3. Purchase a soda (needs money first)
 4. Return money
-5. Exit
+5. Exit (also refunds any leftover money)
 
-### Admin Mode
+**Admin menu** — type `admin` at the main menu prompt
 
-Enter 'admin' at the main menu prompt to access the admin interface:
-1. Restock soda
-2. Add new soda
+1. Restock an existing soda
+2. Add a new soda flavor
 3. View transaction history
-4. Return to main menu
+4. Back to main menu
 
-## Code Structure
+Default stock:
+
+| Soda        | Price | Qty |
+|-------------|-------|-----|
+| Cola        | $1.50 | 10  |
+| Root Beer   | $1.50 | 10  |
+| Lemon-Lime  | $1.50 | 10  |
+| Grape Soda  | $1.75 | 10  |
+| Cream Soda  | $1.75 | 10  |
+
+---
+
+## Architecture (MVC)
 
 ```
-soda_machine/
-├── __init__.py
-├── main.py
-├── model/
-│   ├── __init__.py
-│   └── soda_model.py
-├── view/
-│   ├── __init__.py
-│   └── soda_view.py
-└── controller/
-    ├── __init__.py
-    └── soda_controller.py
+                 ┌──────────────┐
+   keyboard ───► │     View     │ ── prints menus / messages
+                 └──────┬───────┘
+                        │ user choices
+                        ▼
+                 ┌──────────────┐
+                 │  Controller  │ ── decides what to do next
+                 └──────┬───────┘
+                        │ calls business methods
+                        ▼
+                 ┌──────────────┐
+                 │    Model     │ ── inventory, money, purchases
+                 └──────────────┘
 ```
 
-## Class Descriptions
+| Piece | File | Responsibility |
+|-------|------|----------------|
+| **Model** | `src/model/mod.rs` | Data + rules. No printing, no keyboard. |
+| **View** | `src/view/mod.rs` | Only UI. Displays data the controller gives it. |
+| **Controller** | `src/controller/mod.rs` | Reads choice → updates model → shows result. |
+| **Entry** | `src/main.rs` | Builds the three pieces and starts the loop. |
+| **Library root** | `src/lib.rs` | Declares modules so tests can import them. |
 
-### SodaModel
+### Why split a tiny app this way?
 
-The `SodaModel` class manages the data and business logic:
-- Maintains inventory of sodas and their quantities
-- Tracks prices for each soda
-- Handles money insertion and transactions
-- Records transaction history
+So each piece can change without rewriting everything:
+
+- Swap the terminal view for a web UI later → model stays the same.
+- Add a loyalty discount → only the model (and maybe a menu line) changes.
+- Tests can exercise the model with **no** interactive input.
+
+---
+
+## Project layout
+
+```
+soda-machine/
+├── Cargo.toml              # package name, edition, dependencies
+├── README.md               # you are here
+├── EXPLORE_MVC.md          # hands-on tour in the Rust REPL
+├── src/
+│   ├── main.rs             # program entry (binary)
+│   ├── lib.rs              # library root (modules + docs)
+│   ├── model/
+│   │   └── mod.rs          # SodaModel + ModelError + tests
+│   ├── view/
+│   │   └── mod.rs          # SodaView (stdin/stdout)
+│   └── controller/
+│       └── mod.rs          # SodaController
+└── target/                 # build output (gitignored)
+```
+
+### Cargo mental model (Python → Rust)
+
+| Python | Rust / Cargo |
+|--------|----------------|
+| `python main.py` | `cargo run` |
+| `pip` + `requirements.txt` | `Cargo.toml` + crates.io |
+| package folder + `__init__.py` | `src/lib.rs` + `mod` folders |
+| `unittest` / `pytest` | `cargo test` (`#[test]` functions) |
+| `venv` | not needed — Cargo isolates builds in `target/` |
+
+---
+
+## Class / type guide
+
+### `SodaModel` (model)
+
+Holds:
+
+- `inventory: HashMap<String, u32>` — cans left
+- `prices: HashMap<String, f64>` — dollar prices
+- `money_inserted: f64` — coin slot for the current buy
+- `transaction_history: Vec<Transaction>` — admin log
 
 Key methods:
-- `get_inventory()`: Returns the current inventory
-- `get_prices()`: Returns the prices of all sodas
-- `insert_money(amount)`: Adds money to the current transaction
-- `purchase_soda(soda_name)`: Processes a soda purchase
-- `return_money()`: Returns inserted money
 
-### SodaView
+| Method | What it does |
+|--------|----------------|
+| `new()` | Stock the default five sodas |
+| `insert_money(amount)` | Add money; `Err` if negative |
+| `return_money()` | Refund and zero the slot |
+| `purchase_soda(name)` | Buy if stock + funds allow |
+| `restock_soda(name, qty)` | Admin restock |
+| `add_new_soda(name, price, qty)` | Admin new flavor |
+| `get_available_sodas()` | Names with quantity &gt; 0 |
 
-The `SodaView` class handles the user interface:
-- Displays menus and information to the user
-- Collects and validates user input
-- Shows transaction results and messages
+Money uses `f64` to match the original Python floats. Real cash systems
+usually store **cents as integers** — a good future exercise.
 
-Key methods:
-- `display_menu()`: Shows the main menu options
-- `display_sodas(inventory, prices)`: Displays available sodas
-- `get_money_input()`: Gets money input from the user
-- `get_soda_choice(available_sodas)`: Gets the user's soda selection
+### `SodaView` (view)
 
-### SodaController
+Pure I/O helpers: `display_*` print, `get_*` read and validate input.
+EOF (Ctrl+D) is treated as cancel/exit, just like the Python port.
 
-The `SodaController` class connects the model and view:
-- Processes user input from the view
-- Updates the model based on user actions
-- Updates the view based on model changes
-- Manages the application flow
+### `SodaController` (controller)
 
-Key methods:
-- `start()`: Starts the application
-- `run_main_menu()`: Handles the main menu loop
-- `purchase_soda()`: Coordinates the soda purchase process
-- `run_admin_menu()`: Handles the admin menu loop
+Owns the model and view. `start()` runs the main loop until the user exits.
+Secret path: type `admin` at the main menu.
 
-## Extending the Application
+---
 
-### Adding New Soda Types
+## Python → Rust cheat sheet (this project)
 
-New soda types can be added through the admin interface or by modifying the `SodaModel` class initialization.
+| Python idea | Rust equivalent here |
+|-------------|----------------------|
+| `class SodaModel:` | `struct SodaModel` + `impl SodaModel { ... }` |
+| `self.inventory = {}` | `inventory: HashMap<String, u32>` |
+| `raise ValueError(...)` | `return Err(ModelError::...)` |
+| `try / except ValueError` | `match result { Ok(v) => ..., Err(e) => ... }` |
+| `(success, message, change)` tuple | `PurchaseResult { success, message, change }` |
+| `def purchase_soda(self, name):` | `fn purchase_soda(&mut self, name: &str)` |
+| mutating method needs no keyword | needs `&mut self` (exclusive borrow) |
+| read-only method | `&self` |
+| `if __name__ == "__main__"` | `fn main()` in `main.rs` |
+| `from model import SodaModel` | `use soda_machine::model::SodaModel;` |
 
-### Customizing the Interface
+### Borrowing in one sentence
 
-The user interface can be customized by modifying the methods in the `SodaView` class.
+- `&self` = “look, don’t touch”
+- `&mut self` = “I may change this”
+- no `&` when *moving* ownership (e.g. controller takes the model)
 
-### Adding New Features
+The compiler rejects use-after-move and data races at **compile time**.
 
-New features can be added by:
-1. Implementing the feature logic in the `SodaModel` class
-2. Adding interface elements in the `SodaView` class
-3. Connecting them in the `SodaController` class
+---
+
+## Running tests
+
+```bash
+cargo test                 # all tests
+cargo test purchase        # only tests whose name contains "purchase"
+cargo test -- --nocapture  # show println! output from tests
+```
+
+Model tests live at the bottom of `src/model/mod.rs` inside:
+
+```rust
+#[cfg(test)]
+mod tests {
+    // ...
+}
+```
+
+`#[cfg(test)]` means that module is **compiled only for tests**, not for the
+normal binary — so test helpers never bloat your release build.
+
+---
+
+## Extending the app (practice ideas)
+
+1. **Add a soda via code** — in `SodaModel::new`, push another entry.
+2. **Discount day** — if `money_inserted >= 5.0`, knock 10% off the price.
+3. **Integer cents** — store money as `u32` cents to avoid float rounding.
+4. **Save inventory to a file** — `std::fs` + JSON (then you get a first crate:
+   `serde`).
+5. **GUI view** — keep the model; replace only `SodaView`.
+
+When you add a feature, walk the three steps:
+
+1. Model: the rule / data change  
+2. View: any new prompts or messages  
+3. Controller: glue them together  
+
+---
+
+## Explore interactively
+
+See **[EXPLORE_MVC.md](./EXPLORE_MVC.md)** for a step-by-step tour using the
+Rust REPL (`cargo +nightly -Zscript` is optional; the guide also works with
+tiny experimental binaries and `cargo test`).
+
+---
+
+## Troubleshooting
+
+| Problem | Fix |
+|---------|-----|
+| `cargo: command not found` | Install rustup; restart the terminal |
+| Borrow checker error | You probably need `&` or `&mut`, or to `.clone()` a `String` |
+| Prompt prints after you type | View already flushes stdout; copy that pattern for new prompts |
+| Tests fail after edits | Run `cargo test` and read the assertion message — expected vs actual |
+| Want a cleaner build log | `cargo build -q` or `cargo run -q` |
+
+Official book (free): <https://doc.rust-lang.org/book/>
+
+---
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+MIT — see project license if present; otherwise free to use for learning.
